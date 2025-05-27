@@ -2,12 +2,18 @@ require('dotenv').config();
 const { Client, GatewayIntentBits, Collection, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const http = require('http');
 const { checkPermissions } = require('./utils/permissions');
 
 // Load environment variables safely
 const ALLOWED_GUILDS = process.env.ALLOWED_GUILDS || '';
 const allowedGuilds = ALLOWED_GUILDS ? ALLOWED_GUILDS.split(',').map(id => id.trim()) : [];
+
+// Log Railway environment information
+console.log('🚂 Railway Environment Information:');
+console.log(`- Project: ${process.env.RAILWAY_PROJECT_NAME || 'Not available'}`);
+console.log(`- Environment: ${process.env.RAILWAY_ENVIRONMENT_NAME || 'Not available'}`);
+console.log(`- Service: ${process.env.RAILWAY_SERVICE_NAME || 'Not available'}`);
+console.log(`- Private Domain: ${process.env.RAILWAY_PRIVATE_DOMAIN || 'Not available'}`);
 
 // Verify required environment variables
 const requiredVars = ['TOKEN', 'CLIENT_ID'];
@@ -17,25 +23,6 @@ if (missingVars.length > 0) {
     console.error('❌ Missing required environment variables:', missingVars.join(', '));
     process.exit(1);
 }
-
-// Create a simple HTTP server to prevent sleeping
-const server = http.createServer((req, res) => {
-    res.writeHead(200);
-    res.end('Bot is alive!');
-});
-
-// Start the server
-const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || '0.0.0.0';
-
-// Handle server errors
-server.on('error', (error) => {
-    console.error('Server error:', error);
-});
-
-server.listen(PORT, HOST, () => {
-    console.log(`✅ Keep-alive server running on http://${HOST}:${PORT}`);
-});
 
 // Create a new client instance
 const client = new Client({
