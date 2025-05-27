@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -10,48 +10,43 @@ module.exports = {
                 .setRequired(true))
         .addStringOption(option =>
             option.setName('reason')
-                .setDescription('Reason for the kick')
-                .setRequired(false)),
-    async execute(interaction) {
-        if (!interaction.member.permissions.has(PermissionFlagsBits.KickMembers)) {
-            return interaction.reply({ 
-                content: '❌ You do not have permission to use this command!', 
-                ephemeral: true 
-            });
-        }
+                .setDescription('Reason for the kick'))
+        .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
 
-        const user = interaction.options.getMember('user');
+    async execute(interaction) {
+        const user = interaction.options.getUser('user');
+        const member = interaction.guild.members.cache.get(user.id);
         const reason = interaction.options.getString('reason') || 'No reason provided';
 
-        if (!user) {
+        // Check if the user is kickable
+        if (!member.kickable) {
             return interaction.reply({ 
-                content: "❌ Couldn't find that user in this server!", 
+                content: 'I cannot kick this user. They may have a higher role than me or be the server owner.', 
                 ephemeral: true 
             });
         }
-
-        if (!user.kickable) {
-            return interaction.reply({ 
-                content: '❌ I cannot kick this user! They may have a higher role than me.', 
-                ephemeral: true 
-            });
-        }
-
-        const kickEmbed = new EmbedBuilder()
-            .setColor('#ff0000')
-            .setTitle('👢 User Kicked')
-            .addFields(
-                { name: 'User', value: `${user.user.tag} (${user.id})`, inline: true },
-                { name: 'Moderator', value: interaction.user.tag, inline: true },
-                { name: 'Reason', value: reason }
-            )
-            .setTimestamp()
-            .setFooter({ text: 'Florida State Roleplay - Moderation' });
 
         try {
-            await user.send(`You have been kicked from ${interaction.guild.name} for: ${reason}`).catch(() => {});
-            await user.kick(reason);
-            await interaction.reply({ embeds: [kickEmbed] });
+            // Send DM before kicking
+            await user.send({
+                content: `You have been kicked from ${interaction.guild.name}.\nReason: ${reason}`
+            }).catch(() => console.log("Couldn't DM user."));
+
+            // Kick the user
+            await member.kick(reason);
+
+            const embed = new EmbedBuilder()
+                .setColor('#ff3333')
+                .setTitle('👢 User Kicked')
+                .addFields(
+                    { name: 'User', value: `${user.tag} (${user.id})`, inline: true },
+                    { name: 'Moderator', value: `${interaction.user.tag}`, inline: true },
+                    { name: 'Reason', value: reason }
+                )
+                .setTimestamp();
+
+            await interaction.reply({ embeds: [embed] });
+
         } catch (error) {
             console.error(error);
             await interaction.reply({ 

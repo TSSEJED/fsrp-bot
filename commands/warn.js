@@ -1,9 +1,9 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('warn')
-        .setDescription('Warn a user in the server')
+        .setDescription('Warn a user')
         .addUserOption(option =>
             option.setName('user')
                 .setDescription('The user to warn')
@@ -11,32 +11,23 @@ module.exports = {
         .addStringOption(option =>
             option.setName('reason')
                 .setDescription('Reason for the warning')
-                .setRequired(false)),
+                .setRequired(true))
+        .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
+
     async execute(interaction) {
-        if (!interaction.member.permissions.has(PermissionFlagsBits.KickMembers)) {
-            return interaction.reply({ 
-                content: '❌ You do not have permission to use this command!', 
+        const user = interaction.options.getUser('user');
+        const reason = interaction.options.getString('reason');
+        
+        try {
+            await interaction.reply({ 
+                content: `⚠️ ${user.tag} has been warned. Reason: ${reason}`,
                 ephemeral: true 
             });
-        }
-
-        const user = interaction.options.getUser('user');
-        const reason = interaction.options.getString('reason') || 'No reason provided';
-
-        const warnEmbed = new EmbedBuilder()
-            .setColor('#ffcc00')
-            .setTitle('⚠️ User Warned')
-            .addFields(
-                { name: 'User', value: `${user.tag} (${user.id})`, inline: true },
-                { name: 'Moderator', value: interaction.user.tag, inline: true },
-                { name: 'Reason', value: reason }
-            )
-            .setTimestamp()
-            .setFooter({ text: 'Florida State Roleplay - Moderation' });
-
-        try {
-            await interaction.reply({ embeds: [warnEmbed] });
-            await user.send(`You have been warned in ${interaction.guild.name} for: ${reason}`).catch(() => {});
+            
+            // Send DM to the warned user
+            await user.send(`You have been warned in ${interaction.guild.name}. Reason: ${reason}`)
+                .catch(() => console.log("Couldn't DM user."));
+                
         } catch (error) {
             console.error(error);
             await interaction.reply({ 

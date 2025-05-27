@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - FSRP Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <!-- Sidebar -->
+    <div class="flex h-screen bg-gray-100">
+        <div class="bg-gray-800 text-white w-64 flex-shrink-0">
+            <div class="p-4 border-b border-gray-700">
+                <h1 class="text-xl font-bold">FSRP Admin</h1>
+                <p class="text-sm text-gray-400">Control Panel</p>
+            </div>
+            <nav class="mt-4">
+                <a href="#" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 text-white">
+                    <i class="fas fa-home mr-2"></i> Dashboard
+                </a>
+                <a href="#send-message" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 text-white">
+                    <i class="fas fa-paper-plane mr-2"></i> Send Message
+                </a>
+                <a href="#servers" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 text-white">
+                    <i class="fas fa-server mr-2"></i> Servers
+                </a>
+                <div class="absolute bottom-0 w-64 p-4 border-t border-gray-700">
+                    <div class="flex items-center">
+                        <img src="<%= user.avatar %>" alt="User Avatar" class="w-8 h-8 rounded-full mr-2">
+                        <div>
+                            <p class="text-sm font-medium"><%= user.username %></p>
+                            <a href="/logout" class="text-xs text-gray-400 hover:text-white">Sign out</a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto">
+            <div class="p-6">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Dashboard</h2>
+                    <p class="text-gray-600">Welcome back, <%= user.username %>!</p>
+                </div>
+
+                <!-- Bot Status Card -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+                                <i class="fas fa-robot text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 text-sm">Bot Status</p>
+                                <p class="text-xl font-semibold">Online</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
+                                <i class="fas fa-server text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 text-sm">Servers</p>
+                                <p class="text-xl font-semibold"><%= guilds.size %></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
+                                <i class="fas fa-users text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 text-sm">Total Members</p>
+                                <p class="text-xl font-semibold"><% 
+                                    let totalMembers = 0;
+                                    guilds.forEach(guild => {
+                                        totalMembers += guild.memberCount;
+                                    });
+                                %><%= totalMembers.toLocaleString() %></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Send Message Section -->
+                <div id="send-message" class="bg-white p-6 rounded-lg shadow mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Send Message</h3>
+                    <form id="messageForm" class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="channelId">
+                                Channel ID
+                            </label>
+                            <input 
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                                id="channelId" 
+                                type="text" 
+                                placeholder="Enter Channel ID"
+                                required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="message">
+                                Message
+                            </label>
+                            <textarea 
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32" 
+                                id="message" 
+                                placeholder="Enter your message"
+                                required></textarea>
+                        </div>
+                        <div class="flex justify-end">
+                            <button 
+                                type="submit" 
+                                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                                Send Message
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Servers List -->
+                <div id="servers" class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold mb-4">Servers</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white">
+                            <thead>
+                                <tr class="bg-gray-100">
+                                    <th class="py-2 px-4 text-left">Server</th>
+                                    <th class="py-2 px-4 text-left">Members</th>
+                                    <th class="py-2 px-4 text-left">Owner</th>
+                                    <th class="py-2 px-4 text-left">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% guilds.forEach(guild => { %>
+                                    <tr class="border-t">
+                                        <td class="py-3 px-4 flex items-center">
+                                            <img src="<%= guild.iconURL() || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="<%= guild.name %>" class="w-8 h-8 rounded-full mr-2">
+                                            <span><%= guild.name %></span>
+                                        </td>
+                                        <td class="py-3 px-4"><%= guild.memberCount.toLocaleString() %></td>
+                                        <td class="py-3 px-4"><%= guild.ownerId === client.user.id ? 'You' : 'Owner' %></td>
+                                        <td class="py-3 px-4">
+                                            <button class="text-blue-500 hover:text-blue-700 mr-2" onclick="setChannelId('<%= guild.systemChannelId || guild.channels.cache.first().id %>')">
+                                                <i class="fas fa-paper-plane"></i> Send Message
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Handle message form submission
+        document.getElementById('messageForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const channelId = document.getElementById('channelId').value;
+            const message = document.getElementById('message').value;
+            
+            try {
+                const response = await fetch('/send-message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ channelId, message })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Message sent successfully!');
+                    document.getElementById('message').value = '';
+                } else {
+                    alert('Failed to send message: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while sending the message');
+            }
+        });
+        
+        // Set channel ID from servers table
+        function setChannelId(channelId) {
+            document.getElementById('channelId').value = channelId;
+            document.getElementById('message').focus();
+            window.scrollTo({
+                top: document.getElementById('send-message').offsetTop - 20,
+                behavior: 'smooth'
+            });
+        }
+    </script>
+</body>
+</html>

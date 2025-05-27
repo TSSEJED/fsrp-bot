@@ -1,22 +1,25 @@
 {
-  "name": "florida-state-roleplay-bot",
+  "name": "fsrp-admin-bot",
   "version": "1.0.0",
-  "description": "A Discord bot for Florida State Roleplay server",
+  "description": "Admin control panel for FSRP Discord bot",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "deploy": "node deploy-commands.js",
-    "setup": "npm install && node deploy-commands.js",
-    "production": "node index.js"
+    "dev": "nodemon index.js",
+    "deploy": "node deploy-commands.js"
   },
   "dependencies": {
     "discord.js": "^14.14.1",
-    "dotenv": "^16.3.1"
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.3.1",
+    "ejs": "^3.1.9"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
   },
   "engines": {
     "node": ">=16.9.0"
-  },
-  "keywords": ["discord", "bot", "roleplay"],
-  "author": "",
-  "license": "MIT"
+  }
 }

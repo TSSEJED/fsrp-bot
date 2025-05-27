@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -10,58 +10,52 @@ module.exports = {
                 .setRequired(true))
         .addStringOption(option =>
             option.setName('reason')
-                .setDescription('Reason for the ban')
-                .setRequired(false))
+                .setDescription('Reason for the ban'))
         .addIntegerOption(option =>
             option.setName('days')
-                .setDescription('Number of days of messages to delete')
-                .setRequired(false)),
-    async execute(interaction) {
-        if (!interaction.member.permissions.has(PermissionFlagsBits.BanMembers)) {
-            return interaction.reply({ 
-                content: '❌ You do not have permission to use this command!', 
-                ephemeral: true 
-            });
-        }
+                .setDescription('Number of days of messages to delete (0-7)')
+                .setMinValue(0)
+                .setMaxValue(7))
+        .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
 
+    async execute(interaction) {
         const user = interaction.options.getUser('user');
         const reason = interaction.options.getString('reason') || 'No reason provided';
         const days = interaction.options.getInteger('days') || 0;
 
-        if (!user) {
+        // Check if the user is bannable
+        if (!interaction.guild.members.me.permissions.has(PermissionFlagsBits.BanMembers)) {
             return interaction.reply({ 
-                content: "❌ Couldn't find that user!", 
+                content: "I don't have permission to ban members.", 
                 ephemeral: true 
             });
         }
-
-        const member = interaction.guild.members.cache.get(user.id);
-        if (member && !member.bannable) {
-            return interaction.reply({ 
-                content: '❌ I cannot ban this user! They may have a higher role than me.', 
-                ephemeral: true 
-            });
-        }
-
-        const banEmbed = new EmbedBuilder()
-            .setColor('#ff0000')
-            .setTitle('🔨 User Banned')
-            .addFields(
-                { name: 'User', value: `${user.tag} (${user.id})`, inline: true },
-                { name: 'Moderator', value: interaction.user.tag, inline: true },
-                { name: 'Reason', value: reason },
-                { name: 'Messages Deleted', value: `${days} days`, inline: true }
-            )
-            .setTimestamp()
-            .setFooter({ text: 'Florida State Roleplay - Moderation' });
 
         try {
-            await user.send(`You have been banned from ${interaction.guild.name} for: ${reason}`).catch(() => {});
+            // Send DM before banning
+            await user.send({
+                content: `You have been banned from ${interaction.guild.name}.\nReason: ${reason}`
+            }).catch(() => console.log("Couldn't DM user."));
+
+            // Ban the user
             await interaction.guild.members.ban(user, { 
                 days: days,
-                reason: reason 
+                reason: `${interaction.user.tag}: ${reason}`
             });
-            await interaction.reply({ embeds: [banEmbed] });
+
+            const embed = new EmbedBuilder()
+                .setColor('#ff0000')
+                .setTitle('🔨 User Banned')
+                .addFields(
+                    { name: 'User', value: `${user.tag} (${user.id})`, inline: true },
+                    { name: 'Moderator', value: `${interaction.user.tag}`, inline: true },
+                    { name: 'Reason', value: reason },
+                    { name: 'Messages Deleted', value: `${days} days of messages` }
+                )
+                .setTimestamp();
+
+            await interaction.reply({ embeds: [embed] });
+
         } catch (error) {
             console.error(error);
             await interaction.reply({ 

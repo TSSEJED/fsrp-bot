@@ -2,11 +2,30 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "npm install"
+    "buildCommand": "npm install && npm run deploy"
   },
   "deploy": {
     "startCommand": "npm start",
-    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyType": "always",
     "restartPolicyMaxRetries": 10
+  },
+  "healthcheckPath": "/health",
+  "healthcheckTimeout": 20,
+  "httpProxy": {
+    "enabled": true
+  },
+  "probes": {
+    "liveness": {
+      "path": "/health",
+      "initialDelay": 10,
+      "timeoutSeconds": 10,
+      "periodSeconds": 30
+    },
+    "readiness": {
+      "path": "/health",
+      "initialDelay": 10,
+      "timeoutSeconds": 30,
+      "periodSeconds": 60
+    }
   }
 }
