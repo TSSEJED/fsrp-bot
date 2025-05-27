@@ -5,17 +5,26 @@ const path = require('path');
 const http = require('http');
 const { checkPermissions } = require('./utils/permissions');
 const { ALLOWED_GUILDS } = process.env;
-const allowedGuilds = ALLOWED_GUILDS.split(',').map(id => id.trim());
+// Make ALLOWED_GUILDS optional with a default empty array
+const allowedGuilds = ALLOWED_GUILDS ? ALLOWED_GUILDS.split(',').map(id => id.trim()) : [];
 
 // Create a simple HTTP server to prevent sleeping
 const server = http.createServer((req, res) => {
     res.writeHead(200);
-    res.end('Bot is alive!');});
+    res.end('Bot is alive!');
+});
 
 // Start the server
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`✅ Keep-alive server running on port ${PORT}`);
+const HOST = process.env.HOST || '0.0.0.0';
+
+// Handle server errors
+server.on('error', (error) => {
+    console.error('Server error:', error);
+});
+
+server.listen(PORT, HOST, () => {
+    console.log(`✅ Keep-alive server running on http://${HOST}:${PORT}`);
 });
 
 // Create a new client instance
