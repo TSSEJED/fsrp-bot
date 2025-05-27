@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "deploy": "node deploy-commands.js"
+    "deploy": "node deploy-commands.js",
+    "build": "npm install --omit=dev",
+    "postinstall": "npm run deploy"
   },
   "dependencies": {
     "body-parser": "^1.20.2",
