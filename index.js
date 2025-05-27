@@ -4,9 +4,19 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const { checkPermissions } = require('./utils/permissions');
-const { ALLOWED_GUILDS } = process.env;
-// Make ALLOWED_GUILDS optional with a default empty array
+
+// Load environment variables safely
+const ALLOWED_GUILDS = process.env.ALLOWED_GUILDS || '';
 const allowedGuilds = ALLOWED_GUILDS ? ALLOWED_GUILDS.split(',').map(id => id.trim()) : [];
+
+// Verify required environment variables
+const requiredVars = ['TOKEN', 'CLIENT_ID'];
+const missingVars = requiredVars.filter(varName => !process.env[varName]);
+
+if (missingVars.length > 0) {
+    console.error('❌ Missing required environment variables:', missingVars.join(', '));
+    process.exit(1);
+}
 
 // Create a simple HTTP server to prevent sleeping
 const server = http.createServer((req, res) => {
