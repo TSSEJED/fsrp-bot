@@ -4,33 +4,99 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - FSRP Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary: #6b7280;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1f2937;
+            --light: #f9fafb;
+        }
+        
+        body {
+            @apply bg-gray-50 text-gray-900;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        
+        .sidebar {
+            @apply bg-gray-900 text-white w-64 min-h-screen fixed;
+        }
+        
+        .sidebar a {
+            @apply flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors duration-200;
+        }
+        
+        .sidebar a i {
+            @apply w-6 text-center mr-3;
+        }
+        
+        .card {
+            @apply bg-white rounded-xl shadow-sm p-6 border border-gray-100;
+        }
+        
+        .btn {
+            @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center;
+        }
+        
+        .btn-primary {
+            @apply bg-indigo-600 text-white hover:bg-indigo-700;
+        }
+        
+        .log-entry {
+            @apply border-l-4 pl-3 py-1 mb-2 text-sm;
+        }
+        
+        .log-entry.info { @apply border-blue-500 bg-blue-50; }
+        .log-entry.success { @apply border-green-500 bg-green-50; }
+        .log-entry.warning { @apply border-yellow-500 bg-yellow-50; }
+        .log-entry.error { @apply border-red-500 bg-red-50; }
+        .log-entry.system { @apply border-purple-500 bg-purple-50; }
+        
+        #log-container {
+            @apply bg-gray-900 text-gray-200 rounded-lg p-4 h-96 overflow-y-auto font-mono text-sm;
+        }
+        
+        .server-card {
+            @apply bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow;
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
+<body>
     <!-- Sidebar -->
-    <div class="flex h-screen bg-gray-100">
-        <div class="bg-gray-800 text-white w-64 flex-shrink-0">
-            <div class="p-4 border-b border-gray-700">
-                <h1 class="text-xl font-bold">FSRP Admin</h1>
+    <div class="flex min-h-screen">
+        <div class="sidebar">
+            <div class="p-6 border-b border-gray-800">
+                <h1 class="text-2xl font-bold text-white">FSRP Admin</h1>
                 <p class="text-sm text-gray-400">Control Panel</p>
             </div>
             <nav class="mt-4">
-                <a href="#" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 text-white">
-                    <i class="fas fa-home mr-2"></i> Dashboard
+                <a href="#" class="active">
+                    <i class="fas fa-home"></i> Dashboard
                 </a>
-                <a href="#send-message" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 text-white">
-                    <i class="fas fa-paper-plane mr-2"></i> Send Message
+                <a href="#send-message">
+                    <i class="fas fa-paper-plane"></i> Send Message
                 </a>
-                <a href="#servers" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 text-white">
-                    <i class="fas fa-server mr-2"></i> Servers
+                <a href="#servers">
+                    <i class="fas fa-server"></i> Servers
                 </a>
-                <div class="absolute bottom-0 w-64 p-4 border-t border-gray-700">
+                <a href="#logs">
+                    <i class="fas fa-terminal"></i> Logs
+                </a>
+                <div class="absolute bottom-0 w-64 p-4 border-t border-gray-800">
                     <div class="flex items-center">
-                        <img src="<%= user.avatar %>" alt="User Avatar" class="w-8 h-8 rounded-full mr-2">
+                        <img src="<%= user?.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" 
+                             alt="User Avatar" 
+                             class="w-10 h-10 rounded-full mr-3 border-2 border-indigo-500">
                         <div>
-                            <p class="text-sm font-medium"><%= user.username %></p>
-                            <a href="/logout" class="text-xs text-gray-400 hover:text-white">Sign out</a>
+                            <p class="text-sm font-medium text-white"><%= user?.username || 'Admin' %></p>
+                            <a href="/logout" class="text-xs text-gray-400 hover:text-white transition-colors">
+                                <i class="fas fa-sign-out-alt mr-1"></i> Sign out
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -38,54 +104,66 @@
         </div>
 
         <!-- Main Content -->
-        <div class="flex-1 overflow-auto">
-            <div class="p-6">
-                <div class="mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800">Dashboard</h2>
-                    <p class="text-gray-600">Welcome back, <%= user.username %>!</p>
-                </div>
+        <div class="ml-64 flex-1 p-8">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Dashboard</h2>
+                <p class="text-gray-600">Welcome back, <span class="font-medium text-indigo-600"><%= user?.username || 'Admin' %></span>!</p>
+            </div>
 
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <!-- Bot Status Card -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
-                                <i class="fas fa-robot text-xl"></i>
-                            </div>
-                            <div>
-                                <p class="text-gray-500 text-sm">Bot Status</p>
+                <div class="card">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+                            <i class="fas fa-robot text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Bot Status</p>
+                            <div class="flex items-center">
+                                <span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
                                 <p class="text-xl font-semibold">Online</p>
                             </div>
                         </div>
                     </div>
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
-                                <i class="fas fa-server text-xl"></i>
-                            </div>
-                            <div>
-                                <p class="text-gray-500 text-sm">Servers</p>
-                                <p class="text-xl font-semibold"><%= guilds.size %></p>
-                            </div>
+                </div>
+
+                <!-- Servers Card -->
+                <div class="card">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
+                            <i class="fas fa-server text-xl"></i>
                         </div>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
-                                <i class="fas fa-users text-xl"></i>
-                            </div>
-                            <div>
-                                <p class="text-gray-500 text-sm">Total Members</p>
-                                <p class="text-xl font-semibold"><% 
-                                    let totalMembers = 0;
-                                    guilds.forEach(guild => {
-                                        totalMembers += guild.memberCount;
-                                    });
-                                %><%= totalMembers.toLocaleString() %></p>
-                            </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Servers</p>
+                            <p class="text-2xl font-bold"><%= guilds?.size || 0 %></p>
                         </div>
                     </div>
                 </div>
+
+                <!-- Members Card -->
+                <div class="card">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
+                            <i class="fas fa-users text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Total Members</p>
+                            <p class="text-2xl font-bold">
+                                <% 
+                                    let totalMembers = 0;
+                                    if (guilds) {
+                                        guilds.forEach(guild => {
+                                            totalMembers += guild.memberCount || 0;
+                                        });
+                                    }
+                                %>
+                                <%= totalMembers.toLocaleString() %>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
                 <!-- Send Message Section -->
                 <div id="send-message" class="bg-white p-6 rounded-lg shadow mb-6">
@@ -120,6 +198,14 @@
                             </button>
                         </div>
                     </form>
+                </div>
+
+                <!-- Logs Section -->
+                <div id="logs" class="bg-gray-800 text-white p-4 rounded-lg shadow mb-6">
+                    <h3 class="text-lg font-semibold mb-2">Bot Logs</h3>
+                    <div id="log-container" class="bg-black p-4 rounded h-64 overflow-y-auto font-mono text-sm">
+                        <div class="text-green-400">[SYSTEM] Bot dashboard initialized</div>
+                    </div>
                 </div>
 
                 <!-- Servers List -->
@@ -160,33 +246,89 @@
     </div>
 
     <script>
+        // WebSocket connection for real-time logs
+        const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws:';
+        const socket = new WebSocket(`${protocol}//${window.location.host}/ws`);
+        const logContainer = document.getElementById('log-container');
+
+        // Connection opened
+        socket.addEventListener('open', (event) => {
+            console.log('WebSocket connected');
+            addLog('Connected to bot', 'system');
+        });
+
+        // Listen for messages
+        socket.addEventListener('message', (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                addLog(data.message, data.type || 'info');
+            } catch (e) {
+                console.error('Error parsing WebSocket message:', e);
+                addLog('Error processing log message', 'error');
+            }
+        });
+
+        // Handle errors
+        socket.addEventListener('error', (error) => {
+            console.error('WebSocket error:', error);
+            addLog('Connection error', 'error');
+        });
+
+        // Add a log message to the container
+        function addLog(message, type = 'info') {
+            const logEntry = document.createElement('div');
+            const timestamp = new Date().toISOString().substr(11, 8);
+            
+            // Set color based on log type
+            let colorClass = 'text-gray-300'; // default
+            if (type === 'error') colorClass = 'text-red-400';
+            else if (type === 'success') colorClass = 'text-green-400';
+            else if (type === 'warning') colorClass = 'text-yellow-400';
+            else if (type === 'system') colorClass = 'text-blue-400';
+            
+            logEntry.className = `mb-1 ${colorClass}`;
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            
+            // Auto-scroll to bottom
+            const shouldScroll = logContainer.scrollTop + logContainer.clientHeight === logContainer.scrollHeight;
+            logContainer.appendChild(logEntry);
+            if (shouldScroll) {
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+        }
+
         // Handle message form submission
         document.getElementById('messageForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const channelId = document.getElementById('channelId').value;
             const message = document.getElementById('message').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
             
             try {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                
                 const response = await fetch('/send-message', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ channelId, message })
                 });
                 
                 const result = await response.json();
                 
                 if (result.success) {
-                    alert('Message sent successfully!');
+                    addLog(`Message sent to channel ${channelId}`, 'success');
                     document.getElementById('message').value = '';
                 } else {
-                    alert('Failed to send message: ' + (result.error || 'Unknown error'));
+                    addLog(`Failed to send message: ${result.error || 'Unknown error'}`, 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('An error occurred while sending the message');
+                addLog('An error occurred while sending the message', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
             }
         });
         

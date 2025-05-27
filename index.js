@@ -5,6 +5,8 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
+const WebSocket = require('ws');
 const { loadCommands, deployCommands } = require('./utils/commandHandler');
 
 // Initialize Discord client
@@ -164,5 +166,78 @@ process.on('unhandledRejection', error => {
     console.error('Unhandled promise rejection:', error);
 });
 
+// Function to broadcast logs to all connected WebSocket clients
+function broadcastLog(message, type = 'info') {
+    if (!wss) return;
+    
+    const logEntry = JSON.stringify({
+        type,
+        message,
+        timestamp: new Date().toISOString()
+    });
+    
+    wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(logEntry);
+        }
+    });
+}
+
+// Override console.log to broadcast logs
+const originalConsoleLog = console.log;
+console.log = (...args) => {
+    originalConsoleLog(...args);
+    broadcastLog(args.map(arg => 
+        typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+    ).join(' '), 'info');
+};
+
+// Override console.error to broadcast errors
+const originalConsoleError = console.error;
+console.error = (...args) => {
+    originalConsoleError(...args);
+    broadcastLog(args.map(arg => 
+        typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+    ).join(' '), 'error');
+};
+
+// Create HTTP server
+const server = http.createServer(app);
+
+// Initialize WebSocket server
+wss = new WebSocket.Server({ server });
+
+wss.on('connection', (ws) => {
+    console.log('New WebSocket connection');
+    
+    ws.on('close', () => {
+        console.log('WebSocket connection closed');
+    });
+});
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+    
+    // Keep-alive ping
+    setInterval(() => {
+        broadcastLog('Keep-alive ping', 'system');
+    }, 300000); // Every 5 minutes
+});
+
 // Login to Discord
-client.login(process.env.TOKEN).catch(console.error);
+client.login(process.env.TOKEN).catch(error => {
+    console.error('Failed to login to Discord:', error);
+    process.exit(1);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('SIGTERM received. Shutting down...');
+    wss.close();
+    server.close(() => {
+        console.log('HTTP server closed');
+        process.exit(0);
+    });
+});
