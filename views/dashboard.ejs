@@ -3,179 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FSRP Admin Dashboard</title>
+    <title>FSRP Bot - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            200: '#bae6fd',
-                            300: '#7dd3fc',
-                            400: '#38bdf8',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                            800: '#075985',
-                            900: '#0c4a6e',
-                        },
-                        secondary: {
-                            50: '#f5f3ff',
-                            100: '#ede9fe',
-                            200: '#ddd6fe',
-                            300: '#c4b5fd',
-                            400: '#a78bfa',
-                            500: '#8b5cf6',
-                            600: '#7c3aed',
-                            700: '#6d28d9',
-                            800: '#5b21b6',
-                            900: '#4c1d95',
-                        },
-                        pink: {
-                            500: '#ec4899',
-                            600: '#db2777',
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                    boxShadow: {
-                        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',
-                        'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
-                    },
-                    animation: {
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    }
-                }
-            },
-            plugins: [
-                require('@tailwindcss/forms'),
-                require('@tailwindcss/typography'),
-            ],
-        }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --sidebar-width: 260px;
-            --header-height: 64px;
-        }
-        
-        * {
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-        
         body {
-            @apply bg-gray-50 text-gray-800;
-            min-height: 100vh;
+            background-color: #f3f4f6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
-        /* Layout */
-        .app-container {
-            display: grid;
-            grid-template-columns: var(--sidebar-width) 1fr;
-            grid-template-rows: var(--header-height) 1fr;
-            min-height: 100vh;
-        }
-        
         .sidebar {
-            @apply bg-gradient-to-b from-indigo-900 to-indigo-800 text-white fixed top-0 left-0 h-full z-50;
-            width: var(--sidebar-width);
-            transition: all 0.3s ease;
-            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+            width: 250px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: #1a202c;
+            color: white;
+            transition: all 0.3s;
         }
-        
-        .sidebar a {
-            @apply flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors duration-200;
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: all 0.3s;
         }
-        
-        .sidebar a i {
-            @apply w-6 text-center mr-3;
+        .sidebar.collapsed + .main-content {
+            margin-left: 0;
         }
-        
-        .card {
-            @apply bg-white rounded-xl shadow-sm p-6 border border-gray-100;
+        .sidebar.collapsed {
+            transform: translateX(-250px);
         }
-        
-        .btn {
-            @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center;
+        .nav-link {
+            display: block;
+            padding: 12px 20px;
+            color: #cbd5e0;
+            text-decoration: none;
+            transition: all 0.2s;
         }
-        
-        .btn-primary {
-            @apply bg-indigo-600 text-white hover:bg-indigo-700;
+        .nav-link:hover, .nav-link.active {
+            background: #2d3748;
+            color: white;
         }
-        
+        .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
         .log-entry {
-            @apply border-l-4 pl-3 py-1 mb-2 text-sm;
+            padding: 8px 12px;
+            margin: 4px 0;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
         }
-        
-        .log-entry.info { @apply border-blue-500 bg-blue-50; }
-        .log-entry.success { @apply border-green-500 bg-green-50; }
-        .log-entry.warning { @apply border-yellow-500 bg-yellow-50; }
-        .log-entry.error { @apply border-red-500 bg-red-50; }
-        .log-entry.system { @apply border-purple-500 bg-purple-50; }
-        
+        .log-entry.info { background-color: #ebf8ff; color: #2b6cb0; }
+        .log-entry.success { background-color: #f0fff4; color: #2f855a; }
+        .log-entry.warning { background-color: #fffaf0; color: #b7791f; }
+        .log-entry.error { background-color: #fff5f5; color: #c53030; }
         #log-container {
-            @apply bg-gray-900 text-gray-200 rounded-lg p-4 h-96 overflow-y-auto font-mono text-sm;
+            height: 500px;
+            overflow-y: auto;
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
         }
-        
-        .server-card {
-            @apply bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow;
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        .btn-primary {
+            background: #4299e1;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #3182ce;
+        }
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #e53e3e;
         }
     </style>
 </head>
 <body>
     <!-- Sidebar -->
-    <div class="flex min-h-screen">
-        <div class="sidebar">
-            <div class="p-6 border-b border-gray-800">
-                <h1 class="text-2xl font-bold text-white">FSRP Admin</h1>
-                <p class="text-sm text-gray-400">Control Panel</p>
-            </div>
-            <nav class="mt-4">
-                <a href="#" class="active">
-                    <i class="fas fa-home"></i> Dashboard
-                </a>
-                <a href="#send-message">
-                    <i class="fas fa-paper-plane"></i> Send Message
-                </a>
-                <a href="#servers">
-                    <i class="fas fa-server"></i> Servers
-                </a>
-                <a href="#logs">
-                    <i class="fas fa-terminal"></i> Logs
-                </a>
-                <div class="absolute bottom-0 w-64 p-4 border-t border-gray-800">
-                    <div class="flex items-center">
-                        <img src="<%= user?.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" 
-                             alt="User Avatar" 
-                             class="w-10 h-10 rounded-full mr-3 border-2 border-indigo-500">
-                        <div>
-                            <p class="text-sm font-medium text-white"><%= user?.username || 'Admin' %></p>
-                            <a href="/logout" class="text-xs text-gray-400 hover:text-white transition-colors">
-                                <i class="fas fa-sign-out-alt mr-1"></i> Sign out
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </nav>
+    <div class="sidebar">
+        <div class="p-6 border-b border-gray-800">
+            <h1 class="text-2xl font-bold text-white">FSRP Bot</h1>
+            <p class="text-sm text-gray-400">Control Panel</p>
         </div>
-
-        <!-- Main Content -->
-        <div class="ml-64 flex-1 p-8">
-            <div class="mb-8">
-                <h2 class="text-3xl font-bold text-gray-800 mb-2">Dashboard</h2>
-                <p class="text-gray-600">Welcome back, <span class="font-medium text-indigo-600"><%= user?.username || 'Admin' %></span>!</p>
-            </div>
-
-            <!-- Stats Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <!-- Bot Status Card -->
+        <nav class="mt-4">
+            <a href="#" class="nav-link active">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="#send-message" class="nav-link">
+                <i class="fas fa-paper-plane"></i> Send Message
+            </a>
+            <a href="#servers" class="nav-link">
+                <i class="fas fa-server"></i> Servers
+            </a>
+            <a href="#logs" class="nav-link">
+                <i class="fas fa-terminal"></i> Logs
+            </a>
+            <div class="absolute bottom-0 w-64 p-4 border-t border-gray-800">
+                <div class="flex items-center">
+                    <img src="<%= user?.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" 
+                         alt="User Avatar" 
+                         class="w-10 h-10 rounded-full mr-3 border-2 border-indigo-500">
+                    <div>
+                        <p class="text-sm font-medium text-white"><%= user?.username || 'Admin' %></p>
+                        <a href="/logout" class="text-xs text-gray-400 hover:text-white transition-colors">
+                            <i class="fas fa-sign-out-alt mr-1"></i> Sign out
+                        </a>
                 <div class="card">
                     <div class="flex items-center">
                         <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">

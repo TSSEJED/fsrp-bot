@@ -185,29 +185,50 @@ function broadcastLog(message, type = 'info') {
 
 // Function to safely send messages
 async function sendMessage(channel, content, options = {}) {
+    if (!channel || !channel.send) {
+        console.error('Invalid channel provided to sendMessage');
+        return;
+    }
+
     try {
-        if (typeof content === 'string' && content.length > 2000) {
-            // Split long messages
+        // Ensure content is a string
+        const messageContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+        
+        // Handle message splitting if needed
+        if (messageContent.length > 2000) {
             const chunks = [];
-            while (content.length) {
-                const chunk = content.substring(0, 2000);
+            let remaining = messageContent;
+            
+            while (remaining.length > 0) {
+                const chunk = remaining.substring(0, 2000);
                 chunks.push(chunk);
-                content = content.substring(2000);
+                remaining = remaining.substring(2000);
             }
+            
+            // Send all chunks sequentially
             for (const chunk of chunks) {
-                await channel.send({ content: chunk, ...options });
+                await channel.send({ content: chunk, ...options }).catch(e => {
+                    console.error('Error sending message chunk:', e);
+                    throw e;
+                });
             }
         } else {
-            await channel.send({ content, ...options });
+            // Send single message
+            await channel.send({ content: messageContent, ...options }).catch(e => {
+                console.error('Error sending message:', e);
+                throw e;
+            });
         }
+        return true;
     } catch (error) {
-        console.error('Error sending message:', error);
-        // Try to send an error message if possible
-        try {
-            await channel.send({ content: '❌ An error occurred while sending the message.', ephemeral: true });
-        } catch (e) {
-            console.error('Failed to send error message:', e);
-        }
+        console.error('Error in sendMessage:', {
+            error: error.message,
+            stack: error.stack,
+            channelId: channel.id,
+            channelType: channel.type,
+            contentLength: content?.length || 0
+        });
+        return false;
     }
 }
 
