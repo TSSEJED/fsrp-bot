@@ -183,22 +183,60 @@ function broadcastLog(message, type = 'info') {
     });
 }
 
+// Function to safely send messages
+async function sendMessage(channel, content, options = {}) {
+    try {
+        if (typeof content === 'string' && content.length > 2000) {
+            // Split long messages
+            const chunks = [];
+            while (content.length) {
+                const chunk = content.substring(0, 2000);
+                chunks.push(chunk);
+                content = content.substring(2000);
+            }
+            for (const chunk of chunks) {
+                await channel.send({ content: chunk, ...options });
+            }
+        } else {
+            await channel.send({ content, ...options });
+        }
+    } catch (error) {
+        console.error('Error sending message:', error);
+        // Try to send an error message if possible
+        try {
+            await channel.send({ content: '❌ An error occurred while sending the message.', ephemeral: true });
+        } catch (e) {
+            console.error('Failed to send error message:', e);
+        }
+    }
+}
+
 // Override console.log to broadcast logs
 const originalConsoleLog = console.log;
-console.log = (...args) => {
-    originalConsoleLog(...args);
-    broadcastLog(args.map(arg => 
-        typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
-    ).join(' '), 'info');
+console.log = function(...args) {
+    try {
+        const message = args.map(arg => 
+            typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+        ).join(' ');
+        broadcastLog(message, 'info');
+    } catch (e) {
+        originalConsoleLog('Error in console.log override:', e);
+    }
+    originalConsoleLog.apply(console, args);
 };
 
 // Override console.error to broadcast errors
 const originalConsoleError = console.error;
-console.error = (...args) => {
-    originalConsoleError(...args);
-    broadcastLog(args.map(arg => 
-        typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
-    ).join(' '), 'error');
+console.error = function(...args) {
+    try {
+        const message = args.map(arg => 
+            typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+        ).join(' ');
+        broadcastLog(message, 'error');
+    } catch (e) {
+        originalConsoleError('Error in console.error override:', e);
+    }
+    originalConsoleError.apply(console, args);
 };
 
 // Create HTTP server
