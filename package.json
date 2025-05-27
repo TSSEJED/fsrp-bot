@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "deploy": "node deploy-commands.js",
-    "setup": "npm install && node deploy-commands.js"
+    "setup": "npm install && node deploy-commands.js",
+    "production": "npm install --omit=dev && node index.js"
   },
   "dependencies": {
     "discord.js": "^14.14.1",
