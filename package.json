@@ -1,0 +1,21 @@
+{
+  "name": "florida-state-roleplay-bot",
+  "version": "1.0.0",
+  "description": "A Discord bot for Florida State Roleplay server",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "deploy": "node deploy-commands.js",
+    "setup": "npm install && node deploy-commands.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=16.9.0"
+  },
+  "keywords": ["discord", "bot", "roleplay"],
+  "author": "",
+  "license": "MIT"
+}
