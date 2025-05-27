@@ -7,8 +7,8 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "deploy-commands": "node deploy-commands.js",
-    "build": "npm install --omit=dev",
-    "postinstall": "npm run build",
+    "build": "npm ci --only=production --no-audit --prefer-offline",
+    "postinstall": "echo 'Skipping postinstall during Railway build', exit 0",
     "docker:build": "docker build -t fsrp-bot .",
     "docker:run": "docker run -p 3000:3000 --env-file .env fsrp-bot"
   },
