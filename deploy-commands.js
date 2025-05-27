@@ -3,8 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const { REST, Routes } = require('discord.js');
 
-// Set a timeout for the entire script
-const SCRIPT_TIMEOUT = 30000; // 30 seconds
+// Set a timeout for the entire script (increased to 2 minutes)
+const SCRIPT_TIMEOUT = 120000;
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
@@ -13,8 +13,8 @@ process.on('uncaughtException', (error) => {
 });
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+process.on('unhandledRejection', (error) => {
+    console.error('Unhandled Rejection:', error);
     process.exit(1);
 });
 
@@ -26,57 +26,75 @@ const timeout = setTimeout(() => {
 
 async function deployCommands() {
     try {
-        console.log('Starting command deployment...');
+        console.log('🚀 Starting command deployment...');
         
         // Load commands
         const commands = [];
         const commandsPath = path.join(__dirname, 'commands');
-        const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+        
+        // Get command files and filter .js files
+        const commandFiles = fs.readdirSync(commandsPath)
+            .filter(file => file.endsWith('.js'));
 
-        console.log(`Found ${commandFiles.length} command files`);
+        console.log(`📂 Found ${commandFiles.length} command files`);
 
-        for (const file of commandFiles) {
+        // Load commands in parallel
+        await Promise.all(commandFiles.map(async (file) => {
             try {
                 const filePath = path.join(commandsPath, file);
-                delete require.cache[require.resolve(filePath)]; // Clear cache
                 const command = require(filePath);
                 
                 if ('data' in command && 'execute' in command) {
                     commands.push(command.data.toJSON());
                     console.log(`✅ Loaded command: ${file}`);
                 } else {
-                    console.warn(`⚠️  The command at ${filePath} is missing required "data" or "execute" property.`);
+                    console.warn(`⚠️  Skipping ${file}: Missing required properties`);
                 }
             } catch (error) {
                 console.error(`❌ Error loading command ${file}:`, error.message);
-                continue;
             }
-        }
+        }));
 
         if (commands.length === 0) {
-            throw new Error('No valid commands found to deploy.');
+            throw new Error('❌ No valid commands found to deploy');
         }
 
-        console.log(`Deploying ${commands.length} application (/) commands...`);
+        console.log(`🔄 Deploying ${commands.length} application (/) commands...`);
         
-        // Deploy commands
-        const rest = new REST({ timeout: 10000 }).setToken(process.env.TOKEN);
+        // Deploy commands with increased timeout
+        const rest = new REST({ timeout: 30000 }) // 30 seconds
+            .setToken(process.env.TOKEN);
         
         const data = await rest.put(
             Routes.applicationCommands(process.env.CLIENT_ID),
-            { body: commands },
+            { 
+                body: commands,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
         );
 
-        console.log(`✅ Successfully reloaded ${data.length} application (/) commands.`);
+        console.log(`✅ Successfully deployed ${data.length} application (/) commands!`);
         clearTimeout(timeout);
         process.exit(0);
         
     } catch (error) {
-        console.error('❌ Failed to deploy commands:', error);
+        console.error('❌ Failed to deploy commands:', error.message);
+        if (error.code) console.error('Error code:', error.code);
+        if (error.method) console.error('Method:', error.method);
+        if (error.url) console.error('URL:', error.url);
         clearTimeout(timeout);
         process.exit(1);
     }
 }
 
-// Start deployment
-deployCommands();
+// Start deployment with error handling
+(async () => {
+    try {
+        await deployCommands();
+    } catch (error) {
+        console.error('Fatal error in deployment:', error);
+        process.exit(1);
+    }
+})();
