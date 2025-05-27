@@ -285,6 +285,32 @@ server.listen(PORT, '0.0.0.0', () => {
     }, 300000); // Every 5 minutes
 });
 
+// Function to update bot status
+function updateBotStatus() {
+    try {
+        // Set custom status here
+        client.user.setPresence({
+            activities: [{
+                name: 'Made By Sejed TRABELSSI',  // Change this text to your desired status
+                type: 'Join : https://discord.gg/wFxMRyVM3y'  // Can be: PLAYING, STREAMING, LISTENING, WATCHING, COMPETING
+            }],
+            status: 'idle'  // online, idle, dnd, invisible
+        });
+        console.log('Bot status updated successfully');
+    } catch (error) {
+        console.error('Error updating bot status:', error);
+    }
+}
+
+// When the client is ready, run this code (only once)
+client.once('ready', () => {
+    console.log(`Logged in as ${client.user.tag}!`);
+    updateBotStatus();
+    
+    // Update status every hour (optional)
+    setInterval(updateBotStatus, 3600000);
+});
+
 // Login to Discord
 client.login(process.env.TOKEN).catch(error => {
     console.error('Failed to login to Discord:', error);
